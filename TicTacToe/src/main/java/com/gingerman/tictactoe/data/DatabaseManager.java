@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.gingerman.tictactoe.ApplicationManager;
+import com.gingerman.tictactoe.model.Game;
 import com.gingerman.tictactoe.model.Player;
 
 import java.util.ArrayList;
@@ -200,6 +201,36 @@ public class DatabaseManager {
             db.endTransaction();
         }
         return player;
+    }
+
+    public int serializeGameResult(Game game) {
+        if (game == null) return -1; // bad state
+
+        SQLiteDatabase db = getDb();
+
+        try {
+            int result = -1;
+
+            db.beginTransaction();
+
+            result = (int) db.insert(Game.DB_FIELDS.tableName, null, game.getSerializedValues());
+
+            Player player1 = game.player1;
+            String[] whereArgs1 = {Player.DB_FIELDS.id, Long.toString(player1.id)};
+            db.updateWithOnConflict(Player.DB_FIELDS.tableName, player1.getSerializedValues(),
+                    "? = ?", whereArgs1, SQLiteDatabase.CONFLICT_REPLACE);
+
+            Player player2 = game.player2;
+            String[] whereArgs2 = {Player.DB_FIELDS.id, Long.toString(player2.id)};
+            db.updateWithOnConflict(Player.DB_FIELDS.tableName, player2.getSerializedValues(),
+                    "? = ?", whereArgs2, SQLiteDatabase.CONFLICT_REPLACE);
+
+            db.setTransactionSuccessful();
+
+            return result;
+        } finally {
+            db.endTransaction();
+        }
     }
 
     private void execute(SQLiteDatabase db, String sql) {

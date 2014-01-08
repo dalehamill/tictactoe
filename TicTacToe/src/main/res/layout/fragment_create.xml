@@ -31,6 +31,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
+            android:background="@android:color/darker_gray"
+            android:popupBackground="@android:color/background_dark"
             />
     </LinearLayout>
     <LinearLayout
@@ -67,6 +69,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
+            android:background="@android:color/darker_gray"
+            android:popupBackground="@android:color/background_dark"
             />
         </LinearLayout>
 

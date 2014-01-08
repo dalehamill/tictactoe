@@ -86,6 +86,11 @@ public class ApplicationManager {
         return player1 == null || player2 == null ? null : new Game(player1, player2, xBmp, oBmp);
     }
 
+    public void gameCompleted(Game game) {
+        if (game == null) return; // nothing to do
+        DatabaseManager.getInstance().serializeGameResult(game);
+    }
+
     private class LoadObjectsIntoMemoryTask extends AsyncTask<InitializationListener, Void, InitializationListener> {
         @Override
         protected ApplicationManager.InitializationListener doInBackground(ApplicationManager.InitializationListener... listener) {

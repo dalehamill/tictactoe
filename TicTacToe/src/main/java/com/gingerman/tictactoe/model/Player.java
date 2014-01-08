@@ -1,5 +1,6 @@
 package com.gingerman.tictactoe.model;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -39,10 +40,15 @@ public class Player implements Parcelable {
 //        draws = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.draws));
     }
 
-    public void updateStats(int playerWins, int playerLosses, int playerDraws) {
-        wins = playerWins;
-        losses = playerLosses;
-        draws = playerDraws;
+    /**
+     * @return ContentValues representing this object
+     */
+    public ContentValues getSerializedValues() {
+        ContentValues values = new ContentValues(3);
+        values.put(DB_FIELDS.id, id);
+        values.put(DB_FIELDS.name, name);
+
+        return values;
     }
 
     @Override

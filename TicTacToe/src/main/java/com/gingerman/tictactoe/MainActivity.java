@@ -115,7 +115,9 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         Toast.makeText(this, String.format("Game completed: %s",
                 game.winner == null ? "Game ends in a Draw!" : game.winner.name+" wins!"
                 ), 3000).show();
-        // TODO log results to manager
+        ApplicationManager.getsInstance().gameCompleted(game);
+
+        // TODO update results
 
         getFragmentManager().popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }

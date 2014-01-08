@@ -1,5 +1,6 @@
 package com.gingerman.tictactoe.model;
 
+import android.content.ContentValues;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -25,6 +26,14 @@ public class Game implements Parcelable {
     private static final int PLAYER_1_MARK = 1;
     private static final int PLAYER_2_MARK = 2;
 
+    public interface DB_FIELDS {
+        public static final String tableName = "game";
+        public static final String id = "id";
+        public static final String player1 = "player_1";
+        public static final String player2 = "player_2";
+        public static final String winner = "winner";
+    }
+
     /**
      * Construct a new game with empty game state
      * @param gamePlayer1 player 1 (x)
@@ -38,10 +47,6 @@ public class Game implements Parcelable {
         current = player1;
         xMark = xBmp;
         oMark = oBmp;
-    }
-
-    public void setWinner(Player winningPlayer) {
-        winner = winningPlayer;
     }
 
     /**
@@ -95,12 +100,33 @@ public class Game implements Parcelable {
                 positionStatus(0,4,8) ||
                 positionStatus(2,4,6)) {
             winner = current;
+            if (winner == player1) {
+                player1.wins++;
+                player2.losses++;
+            } else {
+                player1.losses++;
+                player2.wins++;
+            }
             return true; // win has occurred
         }
         for (int state : gameBoardState) {
             if (state == 0) return false; // at least one empty spot left
         }
+        player1.draws++;
+        player2.draws++;
         return true; // game board is full
+    }
+
+    /**
+     * @return ContentValues representing this object
+     */
+    public ContentValues getSerializedValues() {
+        ContentValues values = new ContentValues(3);
+        values.put(DB_FIELDS.player1, player1.id);
+        values.put(DB_FIELDS.player2, player2.id);
+        if (winner != null) values.put(DB_FIELDS.winner, winner.id);
+
+        return values;
     }
 
     /**

@@ -8,5 +8,6 @@
     <string name="results">Results:</string>
     <string name="new_user">New User:</string>
     <string name="play">Play!</string>
+    <string name="illegal_move">Illegal move! Try an open slot.</string>
 
 </resources>

@@ -1,6 +1,8 @@
 package com.gingerman.tictactoe;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
 import com.gingerman.tictactoe.data.DatabaseManager;
@@ -18,6 +20,9 @@ public class ApplicationManager {
 
     private Activity mActivity;
     public List<Player> players = new ArrayList<Player>();
+
+    private Bitmap xBmp = null;
+    private Bitmap oBmp = null;
 
     public interface InitializationListener {
         public void onComplete(); // callback when initialization is complete
@@ -38,6 +43,8 @@ public class ApplicationManager {
      */
     public void initialize(final Activity activity, final InitializationListener listener) {
         mActivity = activity;
+        xBmp = BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.x);
+        oBmp = BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.o);
         DatabaseManager.getInstance().initialize(mActivity, new InitializationListener() {
             @Override
             public void onComplete() {
@@ -76,7 +83,7 @@ public class ApplicationManager {
         if (player1 == null) player1 = DatabaseManager.getInstance().createPlayer(playerName1);
         if (player2 == null) player2 = DatabaseManager.getInstance().createPlayer(playerName2);
 
-        return player1 == null || player2 == null ? null : new Game(player1, player2);
+        return player1 == null || player2 == null ? null : new Game(player1, player2, xBmp, oBmp);
     }
 
     private class LoadObjectsIntoMemoryTask extends AsyncTask<InitializationListener, Void, InitializationListener> {
@@ -85,7 +92,8 @@ public class ApplicationManager {
 
             // load in players, and player records
             players = new ArrayList<Player>();
-            players.addAll(DatabaseManager.getInstance().fetchAllPlayers());
+            List<Player> dbPlayers = DatabaseManager.getInstance().fetchAllPlayers();
+            if (dbPlayers != null) players.addAll(dbPlayers);
 
             return listener.length > 0 ? listener[0] : null;
         }

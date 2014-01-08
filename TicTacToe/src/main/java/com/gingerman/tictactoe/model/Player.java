@@ -33,9 +33,10 @@ public class Player implements Parcelable {
 
         id = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.id));
         name = cursor.getString(cursor.getColumnIndex(DB_FIELDS.name));
-        wins = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.wins));
-        losses = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.losses));
-        draws = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.draws));
+        // TODO: parse out wins, etc, when data is there
+//        wins = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.wins));
+//        losses = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.losses));
+//        draws = cursor.getInt(cursor.getColumnIndex(DB_FIELDS.draws));
     }
 
     public void updateStats(int playerWins, int playerLosses, int playerDraws) {

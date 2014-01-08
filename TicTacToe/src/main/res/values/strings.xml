@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TicTacToe</string>
+    <string name="create_game">Create a new game!</string>
+    <string name="player_1">Player 1:</string>
+    <string name="player_2">Player 2:</string>
+    <string name="results">Results:</string>
+    <string name="new_user">New User:</string>
+    <string name="play">Play!</string>
+
+</resources>

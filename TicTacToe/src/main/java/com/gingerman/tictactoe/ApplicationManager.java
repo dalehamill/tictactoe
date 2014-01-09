@@ -24,8 +24,13 @@ public class ApplicationManager {
     private Bitmap xBmp = null;
     private Bitmap oBmp = null;
 
-    public interface InitializationListener {
+    public interface ApplicationManagerListener {
         public void onComplete(); // callback when initialization is complete
+        public void onError(String msg); // error occurred
+    }
+    public interface CreateGameListener {
+        public void onComplete(Game game); // callback to report game created
+        public void onError(String msg); // error occurred
     }
 
     protected ApplicationManager() {}
@@ -41,15 +46,20 @@ public class ApplicationManager {
      * @param activity activity context we are running in
      * @param listener provides callback when manager is usable, on UI thread
      */
-    public void initialize(final Activity activity, final InitializationListener listener) {
+    public void initialize(final Activity activity, final ApplicationManagerListener listener) {
         mActivity = activity;
         xBmp = BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.x);
         oBmp = BitmapFactory.decodeResource(mActivity.getResources(), R.drawable.o);
-        DatabaseManager.getInstance().initialize(mActivity, new InitializationListener() {
+        DatabaseManager.getInstance().initialize(mActivity, new ApplicationManagerListener() {
             @Override
             public void onComplete() {
                 // Database is ready, populate our in memory data
-                new LoadObjectsIntoMemoryTask().execute(new InitializationListener[]{listener});
+                new LoadObjectsIntoMemoryTask().execute(new ApplicationManagerListener[]{listener});
+            }
+
+            @Override
+            public void onError(String msg) {
+                if (listener != null) listener.onError("Initialization failed with error message: "+msg);
             }
         });
     }
@@ -68,11 +78,11 @@ public class ApplicationManager {
      * @param playerName2 name of second player
      * @return a new Game object representing this game
      */
-    public Game createNewGame(String playerName1, String playerName2) {
+    public void createNewGame(String playerName1, String playerName2, final CreateGameListener listener) {
         if (playerName1 == null || playerName1.length() == 0) playerName1 = "Default1";
         if (playerName2 == null || playerName2.length() == 0 || playerName1.equals(playerName2)) playerName2 = "Default2";
 
-        // find/create player
+        // find/create player, potentially writing new players to db
         Player player1 = null;
         Player player2 = null;
         for (Player p : players) {
@@ -82,14 +92,26 @@ public class ApplicationManager {
         // if not found, create new players and return from database
         if (player1 == null) {
             player1 = DatabaseManager.getInstance().createPlayer(playerName1);
-            if (player1 != null) players.add(player1);
         }
         if (player2 == null) {
             player2 = DatabaseManager.getInstance().createPlayer(playerName2);
-            if (player2 != null) players.add(player2);
         }
 
-        return player1 == null || player2 == null ? null : new Game(player1, player2, xBmp, oBmp);
+        final Player finalPlayer1 = player1;
+        final Player finalPlayer2 = player2;
+
+        // Database might have changed, and this is a small app example, so lets repopulate our in memory data to be sure its up to date
+        new LoadObjectsIntoMemoryTask().execute(new ApplicationManagerListener[]{new ApplicationManagerListener() {
+            @Override
+            public void onComplete() {
+                if (listener != null) listener.onComplete(finalPlayer1 == null || finalPlayer2 == null ? null : new Game(finalPlayer1, finalPlayer2, xBmp, oBmp));
+            }
+
+            @Override
+            public void onError(String msg) {
+                if (listener != null) listener.onError("Error creating game: " + msg);
+            }
+        }});
     }
 
     public void gameCompleted(Game game) {
@@ -97,9 +119,9 @@ public class ApplicationManager {
         DatabaseManager.getInstance().serializeGameResult(game);
     }
 
-    private class LoadObjectsIntoMemoryTask extends AsyncTask<InitializationListener, Void, InitializationListener> {
+    private class LoadObjectsIntoMemoryTask extends AsyncTask<ApplicationManagerListener, Void, ApplicationManagerListener> {
         @Override
-        protected ApplicationManager.InitializationListener doInBackground(ApplicationManager.InitializationListener... listener) {
+        protected ApplicationManagerListener doInBackground(ApplicationManagerListener... listener) {
 
             // load in players, and player records
             players = new ArrayList<Player>();
@@ -110,7 +132,7 @@ public class ApplicationManager {
         }
 
         @Override
-        protected void onPostExecute(ApplicationManager.InitializationListener listener) {
+        protected void onPostExecute(ApplicationManagerListener listener) {
             if (listener != null) {
                 listener.onComplete();
             }

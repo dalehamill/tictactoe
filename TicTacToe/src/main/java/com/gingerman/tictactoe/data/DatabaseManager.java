@@ -50,10 +50,10 @@ public class DatabaseManager {
      * @param activity activity context we are running in
      * @param listener provides callback when manager is usable, on ui thread
      */
-    public void initialize(Activity activity, ApplicationManager.InitializationListener listener) {
+    public void initialize(Activity activity, ApplicationManager.ApplicationManagerListener listener) {
         mActivity = activity;
 
-        new DatabaseCreationTask().execute(new ApplicationManager.InitializationListener[]{listener});
+        new DatabaseCreationTask().execute(new ApplicationManager.ApplicationManagerListener[]{listener});
     }
 
     /**
@@ -63,15 +63,15 @@ public class DatabaseManager {
         mDbHelper.close();
     }
 
-    private class DatabaseCreationTask extends AsyncTask<ApplicationManager.InitializationListener, Void, ApplicationManager.InitializationListener> {
+    private class DatabaseCreationTask extends AsyncTask<ApplicationManager.ApplicationManagerListener, Void, ApplicationManager.ApplicationManagerListener> {
         @Override
-        protected ApplicationManager.InitializationListener doInBackground(ApplicationManager.InitializationListener... listener) {
+        protected ApplicationManager.ApplicationManagerListener doInBackground(ApplicationManager.ApplicationManagerListener... listener) {
             mDbHelper = new DatabaseOpenHelper(mActivity.getApplicationContext(), DB_NAME, null, DB_VERSION);
             return listener.length > 0 ? listener[0] : null;
         }
 
         @Override
-        protected void onPostExecute(ApplicationManager.InitializationListener listener) {
+        protected void onPostExecute(ApplicationManager.ApplicationManagerListener listener) {
             if (listener != null) {
                 listener.onComplete();
             }
@@ -194,7 +194,7 @@ public class DatabaseManager {
 
             Player player1 = game.player1;
             int p1row = db.update(Player.DB_FIELDS.tableName, player1.getSerializedValues(),
-                    String.format("id = %s",player1.id), null);
+                    String.format("id = %s", player1.id), null);
 
             Player player2 = game.player2;
             int p2row = db.update(Player.DB_FIELDS.tableName, player2.getSerializedValues(),

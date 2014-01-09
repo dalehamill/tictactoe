@@ -52,7 +52,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         mInitProgressBar = (ProgressBar) findViewById(R.id.container_progress);
 
         // Initialize our game logic manager
-        ApplicationManager.getsInstance().initialize(this, new ApplicationManager.InitializationListener() {
+        ApplicationManager.getsInstance().initialize(this, new ApplicationManager.ApplicationManagerListener() {
             @Override
             public void onComplete() {
                 Log.d(LOG_TAG, "ApplicationManager initialization is complete.");
@@ -94,7 +94,13 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 Button playBtn = (Button) findViewById(R.id.playbtn);
                 playBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View v) {
+                    public void onClick(final View v) {
+
+                        // display a spinner to show we are thinking...
+                        ((Button) v).setText("");
+                        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.play_btn_progress);
+                        progressBar.setVisibility(View.VISIBLE);
+
                         String player1Name = mPlayer1Spinner.getSelectedItemPosition() == 0 ? p1txt.getText().toString() :
                                 (mPlayer1Spinner.getSelectedItem() == null ? null : mPlayer1Spinner.getSelectedItem().toString());
                         String player2Name = mPlayer2Spinner.getSelectedItemPosition() == 0 ? p2txt.getText().toString() :
@@ -105,17 +111,30 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 
                         // Create a new game
-                        Game newGame = ApplicationManager.getsInstance().createNewGame(
-                                player1Name, player2Name);
-                        // launch new game into game fragment
-                        final Fragment fragment = GameFragment.newInstance(newGame);
-                        final FragmentManager manager = getFragmentManager();
-                        final FragmentTransaction transaction = manager.beginTransaction();
+                        ApplicationManager.getsInstance().createNewGame(player1Name, player2Name, new ApplicationManager.CreateGameListener() {
+                            @Override
+                            public void onComplete(Game game) {
+                                // launch new game into game fragment
+                                final Fragment fragment = GameFragment.newInstance(game);
+                                final FragmentManager manager = getFragmentManager();
+                                final FragmentTransaction transaction = manager.beginTransaction();
 
-                        manager.popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                        transaction.add(R.id.container, fragment, GAME_FRAGMENT_TAG);
-                        transaction.addToBackStack(GAME_FRAGMENT_TAG);
-                        transaction.commit();
+                                manager.popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                transaction.add(R.id.container, fragment, GAME_FRAGMENT_TAG);
+                                transaction.addToBackStack(GAME_FRAGMENT_TAG);
+                                transaction.commit();
+
+                                // return button and spinner to pre-click positions
+                                progressBar.setVisibility(View.GONE);
+                                ((Button) v).setText(R.string.play);
+                            }
+
+                            @Override
+                            public void onError(String msg) {
+                                Log.e(LOG_TAG, msg);
+                                Toast.makeText(getApplicationContext(), "Create game failed!", 1500).show();
+                            }
+                        });
                     }
                 });
 
@@ -124,6 +143,11 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 mResultsList.setAdapter(new ResultsListAdapter(players));
                 // avoid keyboard popping up by putting focus on the list
                 mResultsList.requestFocus();
+            }
+
+            @Override
+            public void onError(String msg) {
+                Log.e(LOG_TAG, msg);
             }
         });
     }

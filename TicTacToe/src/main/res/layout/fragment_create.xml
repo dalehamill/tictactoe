@@ -100,16 +100,27 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"/>
             </LinearLayout>
-
-            <Button
-                android:id="@+id/playbtn"
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="5dp"
-                android:layout_marginBottom="25dp"
-                android:text="@string/play"
-                />
+                android:layout_marginBottom="25dp">
+                    <Button
+                        android:id="@+id/playbtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/play"
+                        android:layout_centerInParent="true"
+                        />
+                    <ProgressBar
+                        android:id="@+id/play_btn_progress"
+                        android:visibility="gone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        />
+                </RelativeLayout>
         </LinearLayout>
     </ScrollView>
 

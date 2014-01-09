@@ -3,5 +3,12 @@ tictactoe
 
 Tic Tac Toe Android
 
-Coding challenge from Thalmic Labs, intended to be a full working app with little polish, but allowing for a game of tic tac toe with two live players.
+Coding challenge entry.
+Intended to be a simple app, working, and with some UI polish.
+Allows for a two player game of X's and O's, multiple player accounts, and tracks stats.
+As a bonus, it serializes these stats to a database, and can so stats persist beyond restarts.
+I also delved into the scary world of fragments to make the UI a bit more slick.
+
+I hope you enjoy it,
+Dale.
 

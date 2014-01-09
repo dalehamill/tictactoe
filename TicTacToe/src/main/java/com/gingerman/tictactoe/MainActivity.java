@@ -67,7 +67,6 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 // inflate and initialize the player selection spinners
                 mPlayer1Spinner = (Spinner) findViewById(R.id.player_1_spn);
                 mPlayer2Spinner = (Spinner) findViewById(R.id.player_2_spn);
-                refreshSpinnerListAdapters();
 
                 mPlayer1Spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
@@ -107,9 +106,9 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.play_btn_progress);
                         progressBar.setVisibility(View.VISIBLE);
 
-                        String player1Name = mPlayer1Spinner.getSelectedItemPosition() == 0 ? p1txt.getText().toString() :
+                        String player1Name = mPlayer1Spinner.getSelectedItemPosition() <= 0 ? p1txt.getText().toString() :
                                 (mPlayer1Spinner.getSelectedItem() == null ? null : mPlayer1Spinner.getSelectedItem().toString());
-                        String player2Name = mPlayer2Spinner.getSelectedItemPosition() == 0 ? p2txt.getText().toString() :
+                        String player2Name = mPlayer2Spinner.getSelectedItemPosition() <= 0 ? p2txt.getText().toString() :
                                 (mPlayer2Spinner.getSelectedItem() == null ? null : mPlayer2Spinner.getSelectedItem().toString());
 
                         // Create a new game
@@ -148,6 +147,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                     }
                 });
 
+                // setup the player name spinners
+                refreshSpinnerListAdapters();
                 // setup the results list
                 mResultsTitle = (TextView) findViewById(R.id.results_title);
                 mResultsList = (ListView) findViewById(R.id.results_list);
@@ -222,6 +223,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         Log.d(LOG_TAG, "onGameQuit!");
         Toast.makeText(this, "Game quit: No winner declared!", 3000).show();
         getFragmentManager().popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+        refreshSpinnerListAdapters(game.player1.name, game.player2.name);
     }
 
     /**
@@ -245,7 +248,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         refreshSpinnerListAdapters(null, null);
     }
     private void refreshSpinnerListAdapters(String select1, String select2) {
-        if (mPlayer1Spinner == null || mPlayer2Spinner != null) return;
+        if (mPlayer1Spinner == null || mPlayer2Spinner == null) return;
 
         List<Player> players = ApplicationManager.getsInstance().players;
         final List<String> names = new ArrayList<String>();

@@ -139,6 +139,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
 
         // update results
         mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
+        mResultsList.refreshDrawableState();
         refreshSpinnerListAdapters();
         // avoid keyboard popping up by putting focus on the list
         mResultsList.requestFocus();

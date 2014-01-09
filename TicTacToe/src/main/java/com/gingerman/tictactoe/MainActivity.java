@@ -7,6 +7,7 @@ import android.app.FragmentTransaction;
 import android.app.Service;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -32,6 +34,7 @@ import java.util.List;
 public class MainActivity extends Activity implements GameFragment.OnGameListener {
     private static final String LOG_TAG = "MainActivity";
     private static final String GAME_FRAGMENT_TAG = "GameFragment";
+    private static final String SPINNER_FRAGMENT_TAG = "SpinnerFragment";
 
     private ProgressBar mInitProgressBar = null;
     private ListView mResultsList = null;
@@ -160,22 +163,37 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
     }
 
     @Override
-    public void onGameComplete(Game game) {
+    public void onGameComplete(final Game game) {
         Log.d(LOG_TAG, "onGameComplete!");
         Toast.makeText(this, String.format("Game completed: %s",
                 game.winner == null ? "Game ends in a Draw!" : game.winner.name+" wins!"
                 ), 3000).show();
-        ApplicationManager.getsInstance().gameCompleted(game);
 
-        // update results
-        mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
-        mResultsList.refreshDrawableState();
-        refreshSpinnerListAdapters(game.player1.name, game.player2.name);
-
-        // avoid keyboard popping up by putting focus on the list
-        mResultsList.requestFocus();
-
+        // pop up our congrats screen (with spinner, while we update stats)
+        final Fragment spinner = new SpinnerFragment();
+        getFragmentManager().beginTransaction().add(R.id.container, spinner, SPINNER_FRAGMENT_TAG).commit();
         getFragmentManager().popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+        ApplicationManager.getsInstance().gameCompleted(game, new ApplicationManager.ApplicationManagerListener() {
+            @Override
+            public void onComplete() {
+                // update results
+                mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
+                mResultsList.refreshDrawableState();
+                refreshSpinnerListAdapters(game.player1.name, game.player2.name);
+
+                // avoid keyboard popping up by putting focus on the list
+                mResultsList.requestFocus();
+
+                // close spinner
+                getFragmentManager().beginTransaction().remove(spinner).commit();
+            }
+
+            @Override
+            public void onError(String msg) {
+                Log.e(LOG_TAG, msg);
+            }
+        });
     }
 
     @Override
@@ -275,6 +293,14 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
             playerStats.setText(String.format("%s-%s-%s", player.wins, player.losses, player.draws));
 
             return resultRow;
+        }
+    }
+
+    // custom built spinner dialog to display while we're thinking
+    private class SpinnerFragment extends Fragment {
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.spinner, container, false);
         }
     }
 }

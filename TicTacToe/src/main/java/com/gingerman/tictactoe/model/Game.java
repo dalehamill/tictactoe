@@ -92,6 +92,7 @@ public class Game implements Parcelable {
                 positionStatus(0,4,8) ||
                 positionStatus(2,4,6)) {
             winner = current;
+            // update our copy of the player
             if (winner == player1) {
                 player1.wins++;
                 player2.losses++;
@@ -104,6 +105,7 @@ public class Game implements Parcelable {
         for (int state : gameBoardState) {
             if (state == 0) return false; // at least one empty spot left
         }
+        // update our copy of the player
         player1.draws++;
         player2.draws++;
         return true; // game board is full

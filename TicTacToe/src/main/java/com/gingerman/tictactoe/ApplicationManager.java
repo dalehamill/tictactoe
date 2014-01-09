@@ -104,7 +104,8 @@ public class ApplicationManager {
         new LoadObjectsIntoMemoryTask().execute(new ApplicationManagerListener[]{new ApplicationManagerListener() {
             @Override
             public void onComplete() {
-                if (listener != null) listener.onComplete(finalPlayer1 == null || finalPlayer2 == null ? null : new Game(finalPlayer1, finalPlayer2, xBmp, oBmp));
+                if (listener != null)
+                    listener.onComplete(finalPlayer1 == null || finalPlayer2 == null ? null : new Game(finalPlayer1, finalPlayer2, xBmp, oBmp));
             }
 
             @Override
@@ -114,28 +115,53 @@ public class ApplicationManager {
         }});
     }
 
-    public void gameCompleted(Game game) {
+    public void gameCompleted(Game game, ApplicationManagerListener listener) {
         if (game == null) return; // nothing to do
-        DatabaseManager.getInstance().serializeGameResult(game);
+
+        // update our player data
+
+
+        // serialize to db, callback when done
+        new SerializeGameResultTask().execute(new Object[]{game, listener});
     }
 
     private class LoadObjectsIntoMemoryTask extends AsyncTask<ApplicationManagerListener, Void, ApplicationManagerListener> {
         @Override
         protected ApplicationManagerListener doInBackground(ApplicationManagerListener... listener) {
-
-            // load in players, and player records
-            players = new ArrayList<Player>();
-            List<Player> dbPlayers = DatabaseManager.getInstance().fetchAllPlayers();
-            if (dbPlayers != null) players.addAll(dbPlayers);
-
+            fetchPlayerData();
             return listener.length > 0 ? listener[0] : null;
         }
 
         @Override
         protected void onPostExecute(ApplicationManagerListener listener) {
-            if (listener != null) {
-                listener.onComplete();
-            }
+            if (listener != null) listener.onComplete();
+        }
+    }
+
+    // should be done on background thread!
+    private void fetchPlayerData() {
+        // load in players, and player records
+        players = new ArrayList<Player>();
+        List<Player> dbPlayers = DatabaseManager.getInstance().fetchAllPlayers();
+        if (dbPlayers != null) players.addAll(dbPlayers);
+    }
+
+    private class SerializeGameResultTask extends AsyncTask<Object, Void, ApplicationManagerListener> {
+        @Override
+        protected ApplicationManagerListener doInBackground(Object... objects) {
+            Game game = (Game) objects[0];
+            ApplicationManagerListener listener = (ApplicationManagerListener) objects[1];
+
+            // serialize game results, then refresh our player data for sanity that we're up to date
+            DatabaseManager.getInstance().serializeGameResult(game);
+            fetchPlayerData();
+
+            return listener;
+        }
+
+        @Override
+        protected void onPostExecute(ApplicationManagerListener listener) {
+            if (listener != null) listener.onComplete();
         }
     }
 }

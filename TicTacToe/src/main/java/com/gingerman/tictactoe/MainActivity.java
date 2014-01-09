@@ -9,10 +9,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +28,8 @@ import java.util.List;
 public class MainActivity extends Activity implements GameFragment.OnGameListener {
     private static final String LOG_TAG = "MainActivity";
     private static final String GAME_FRAGMENT_TAG = "GameFragment";
+
+    private ListView mResultsList = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +101,9 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                         transaction.commit();
                     }
                 });
+
+                mResultsList = (ListView) findViewById(R.id.results_list);
+                mResultsList.setAdapter(new ResultsListAdapter(players));
             }
         });
     }
@@ -117,7 +123,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 ), 3000).show();
         ApplicationManager.getsInstance().gameCompleted(game);
 
-        // TODO update results
+        // update results
+        mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
 
         getFragmentManager().popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
@@ -145,4 +152,44 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         }
     }
 
+    private class ResultsListAdapter extends BaseAdapter {
+        private List<Player> mPlayers = null;
+
+        public ResultsListAdapter(List<Player> players) {
+            mPlayers = new ArrayList<Player>(players.size());
+            mPlayers.addAll(players);
+        }
+
+        @Override
+        public int getCount() {
+            return mPlayers.size();
+        }
+
+        @Override
+        public Player getItem(int position) {
+            return mPlayers.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            Player player = getItem(position);
+            return player != null ? player.id : 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Player player = getItem(position);
+            if (player == null) return null;
+
+            LayoutInflater inflater = getLayoutInflater();
+            final View resultRow = inflater.inflate(R.layout.result_row, null);
+
+            final TextView playerName = (TextView) resultRow.findViewById(R.id.result_player_name);
+            playerName.setText(player.name);
+            final TextView playerStats = (TextView) resultRow.findViewById(R.id.result_player_stats);
+            playerStats.setText(String.format("%s-%s-%s", player.wins, player.losses, player.draws));
+
+            return resultRow;
+        }
+    }
 }

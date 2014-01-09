@@ -80,8 +80,14 @@ public class ApplicationManager {
             else if (playerName2.equals(p.name)) player2 = p;
         }
         // if not found, create new players and return from database
-        if (player1 == null) player1 = DatabaseManager.getInstance().createPlayer(playerName1);
-        if (player2 == null) player2 = DatabaseManager.getInstance().createPlayer(playerName2);
+        if (player1 == null) {
+            player1 = DatabaseManager.getInstance().createPlayer(playerName1);
+            if (player1 != null) players.add(player1);
+        }
+        if (player2 == null) {
+            player2 = DatabaseManager.getInstance().createPlayer(playerName2);
+            if (player2 != null) players.add(player2);
+        }
 
         return player1 == null || player2 == null ? null : new Game(player1, player2, xBmp, oBmp);
     }

@@ -37,6 +37,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
     private static final String SPINNER_FRAGMENT_TAG = "SpinnerFragment";
 
     private ProgressBar mInitProgressBar = null;
+    private TextView mResultsTitle = null;
     private ListView mResultsList = null;
     private Spinner mPlayer1Spinner = null;
     private Spinner mPlayer2Spinner = null;
@@ -60,8 +61,10 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
             public void onComplete() {
                 Log.d(LOG_TAG, "ApplicationManager initialization is complete.");
 
+                // hide the progress bar that runs while we initialize
                 mInitProgressBar.setVisibility(View.GONE);
 
+                // inflate and initialize the player selection spinners
                 mPlayer1Spinner = (Spinner) findViewById(R.id.player_1_spn);
                 mPlayer2Spinner = (Spinner) findViewById(R.id.player_2_spn);
                 refreshSpinnerListAdapters();
@@ -109,17 +112,13 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                         String player2Name = mPlayer2Spinner.getSelectedItemPosition() == 0 ? p2txt.getText().toString() :
                                 (mPlayer2Spinner.getSelectedItem() == null ? null : mPlayer2Spinner.getSelectedItem().toString());
 
-                        // clean up the keyboard, if it's open...since it's annoying
-                        InputMethodManager imm = (InputMethodManager)getSystemService(Service.INPUT_METHOD_SERVICE);
-                        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-
                         // Create a new game
                         ApplicationManager.getsInstance().createNewGame(player1Name, player2Name, new ApplicationManager.CreateGameListener() {
                             @Override
                             public void onComplete(Game game) {
-                                // forcing keyboard to close. this avoids a really weird bug where
-                                // keyboard is popping up because of (I presume) weird focus issues
-                                // between fragments.  StackOverflow is really undecided on why.. :(
+                                // Avoiding a really awkward Android-ism, I force close the soft keyboard to avoid it popping up.
+                                //  It appears to pop this up if any of the fragments shown have an EditText, and attempts to
+                                //  properly force focus failed miserably
                                 if (getCurrentFocus() != null) {
                                     InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(Activity.INPUT_METHOD_SERVICE);
                                     inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
@@ -149,11 +148,21 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                     }
                 });
 
+                // setup the results list
+                mResultsTitle = (TextView) findViewById(R.id.results_title);
                 mResultsList = (ListView) findViewById(R.id.results_list);
                 List<Player> players = ApplicationManager.getsInstance().players;
-                mResultsList.setAdapter(new ResultsListAdapter(players));
-                // avoid keyboard popping up by putting focus on the list
-                mResultsList.requestFocus();
+                if (players.size() == 0) {
+                    mResultsList.setVisibility(View.GONE);
+                    mResultsTitle.setVisibility(View.GONE);
+                } else {
+                    mResultsList.setVisibility(View.VISIBLE);
+                    mResultsTitle.setVisibility(View.VISIBLE);
+
+                    mResultsList.setAdapter(new ResultsListAdapter(players));
+                    // avoid keyboard popping up by putting focus on the list
+                    mResultsList.requestFocus();
+                }
             }
 
             @Override
@@ -185,6 +194,10 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         ApplicationManager.getsInstance().gameCompleted(game, new ApplicationManager.ApplicationManagerListener() {
             @Override
             public void onComplete() {
+                // ensure results are displayed
+                mResultsList.setVisibility(View.VISIBLE);
+                mResultsTitle.setVisibility(View.VISIBLE);
+
                 // update results
                 mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
                 mResultsList.refreshDrawableState();
@@ -232,6 +245,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         refreshSpinnerListAdapters(null, null);
     }
     private void refreshSpinnerListAdapters(String select1, String select2) {
+        if (mPlayer1Spinner == null || mPlayer2Spinner != null) return;
+
         List<Player> players = ApplicationManager.getsInstance().players;
         final List<String> names = new ArrayList<String>();
         names.add("<Custom>");

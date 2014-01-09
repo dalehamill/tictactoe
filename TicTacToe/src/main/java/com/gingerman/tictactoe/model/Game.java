@@ -9,7 +9,8 @@ import android.util.Log;
 import com.gingerman.tictactoe.fragments.GameFragment;
 
 /**
- * Represents a game being played between two players, possibly with a winner declared
+ * Represents a game being played between two players, possibly with a winner declared.
+ * Encapsulates game behavior and logic for whether or not a move is legal, and if the game is complete.
  */
 public class Game implements Parcelable {
     private static final String LOG_TAG = "Game";
@@ -120,7 +121,7 @@ public class Game implements Parcelable {
      * @param p1 first position
      * @param p2 second position
      * @param p3 third position
-     * @return if position's are owned by the same user. positions must be in scope of position array.
+     * @return true if position's are owned by the same user. positions must be in scope of position array.
      */
     private boolean positionStatus(int p1, int p2, int p3) {
         int v1 = gameBoardState[p1];

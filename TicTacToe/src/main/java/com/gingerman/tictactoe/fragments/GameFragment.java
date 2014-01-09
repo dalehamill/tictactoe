@@ -31,13 +31,17 @@ public class GameFragment extends Fragment {
     private TextView mTitleText;
     private ImageView mTitleImage;
 
-    // Container Activity must implement this interface (allows us to communicate back)
+    /**
+     * Container Activity must implement this interface (allows us to communicate back)
+     */
     public interface OnGameListener {
         public void onGameComplete(Game game);
         public void onGameQuit(Game game);
     }
 
-    // central definition of bundle ids to avoid confusion
+    /**
+     * Central definition of bundle ids to avoid confusion
+     */
     private static interface BUNDLE_IDS {
         public static final String game = "game";
     }
@@ -55,6 +59,9 @@ public class GameFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Inflates the view hierarchy for this fragment
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -99,6 +106,7 @@ public class GameFragment extends Fragment {
         return view;
     }
 
+    // Helper method to update the players turn indicator
     private void updateTitle() {
         mTitleText.setText(String.format("%s's turn!", mGame.current.name));
         mTitleImage.setImageBitmap(mGame.getImageForCurrentPlayer());
@@ -118,6 +126,9 @@ public class GameFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        // Avoiding a really awkward Android-ism, I force close the soft keyboard to avoid it popping up.
+        //  It appears to pop this up if any of the fragments shown have an EditText, and attempts to
+        //  properly force focus failed miserably...
         Activity activity = getActivity();
         if (activity.getCurrentFocus() != null) {
             InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);

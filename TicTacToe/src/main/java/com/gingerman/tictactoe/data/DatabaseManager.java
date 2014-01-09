@@ -38,6 +38,9 @@ public class DatabaseManager {
     protected DatabaseManager() {
     }
 
+    /**
+     * @return the singleton instance of this manager
+     */
     public static DatabaseManager getInstance() {
         if (sInstance == null) {
             sInstance = new DatabaseManager();
@@ -63,6 +66,9 @@ public class DatabaseManager {
         mDbHelper.close();
     }
 
+    /**
+     * AsyncTask to perform the db intialization in the background thread, and respond when it is ready to use via listener callback
+     */
     private class DatabaseCreationTask extends AsyncTask<ApplicationManager.ApplicationManagerListener, Void, ApplicationManager.ApplicationManagerListener> {
         @Override
         protected ApplicationManager.ApplicationManagerListener doInBackground(ApplicationManager.ApplicationManagerListener... listener) {
@@ -78,6 +84,12 @@ public class DatabaseManager {
         }
     }
 
+    /**
+     * Custom OpenHelper class to create our db tables, handle upgrades, etc.
+     * For purposes of this exercise, this Helper is very simple and will overwrite stats on an upgrade.
+     */
+
+    //
     private class DatabaseOpenHelper extends SQLiteOpenHelper {
         public DatabaseOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
             super(context, name, factory, version);
@@ -136,6 +148,9 @@ public class DatabaseManager {
         }
     }
 
+    /**
+     * @return a List of all Players known to the database
+     */
     public List<Player> fetchAllPlayers() {
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -159,6 +174,10 @@ public class DatabaseManager {
         }
     }
 
+    /**
+     * @param name name of the player to create (record will be empty)
+     * @return A new, db backed up, Player object representing the new player requested
+     */
     public Player createPlayer(String name) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         Player player = null;
@@ -207,6 +226,7 @@ public class DatabaseManager {
         }
     }
 
+    // db helper methods
     private void execute(SQLiteDatabase db, String sql) {
         Log.d(LOG_TAG, "executing sql statement: " + sql);
         db.execSQL(sql);

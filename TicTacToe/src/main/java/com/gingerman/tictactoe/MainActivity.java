@@ -140,7 +140,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         // update results
         mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
         mResultsList.refreshDrawableState();
-        refreshSpinnerListAdapters();
+        refreshSpinnerListAdapters(game.player1.name, game.player2.name);
+
         // avoid keyboard popping up by putting focus on the list
         mResultsList.requestFocus();
 
@@ -170,7 +171,11 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         }
     }
 
+    // Helper method to refresh both spinners
     private void refreshSpinnerListAdapters() {
+        refreshSpinnerListAdapters(null, null);
+    }
+    private void refreshSpinnerListAdapters(String select1, String select2) {
         List<Player> players = ApplicationManager.getsInstance().players;
         final List<String> names = new ArrayList<String>();
         names.add("<Custom>");
@@ -188,6 +193,10 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
 
         mPlayer1Spinner.setAdapter(playerListAdapter);
         mPlayer2Spinner.setAdapter(playerListAdapter);
+
+        // select the last played players, if available.
+        if (select1 != null) mPlayer1Spinner.setSelection(names.indexOf(select1));
+        if (select2 != null) mPlayer2Spinner.setSelection(names.indexOf(select2));
 
         if (names.size() == 1) {
             mPlayer1Spinner.setVisibility(View.GONE);

@@ -94,6 +94,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                         String player2Name = mPlayer2Spinner.getSelectedItemPosition() == 0 ? p2txt.getText().toString() :
                                 (mPlayer2Spinner.getSelectedItem() == null ? null : mPlayer2Spinner.getSelectedItem().toString());
 
+                        // clean up the keyboard, if it's open...since it's annoying
                         InputMethodManager imm = (InputMethodManager)getSystemService(Service.INPUT_METHOD_SERVICE);
                         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 

@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -109,6 +110,17 @@ public class GameFragment extends Fragment {
         if (bundle == null) return;
 
         mGame = bundle.getParcelable(BUNDLE_IDS.game);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Activity activity = getActivity();
+        if (activity.getCurrentFocus() != null) {
+            InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+        }
     }
 
     @Override

@@ -117,6 +117,14 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                         ApplicationManager.getsInstance().createNewGame(player1Name, player2Name, new ApplicationManager.CreateGameListener() {
                             @Override
                             public void onComplete(Game game) {
+                                // forcing keyboard to close. this avoids a really weird bug where
+                                // keyboard is popping up because of (I presume) weird focus issues
+                                // between fragments.  StackOverflow is really undecided on why.. :(
+                                if (getCurrentFocus() != null) {
+                                    InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(Activity.INPUT_METHOD_SERVICE);
+                                    inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                                }
+
                                 // launch new game into game fragment
                                 final Fragment fragment = GameFragment.newInstance(game);
                                 final FragmentManager manager = getFragmentManager();

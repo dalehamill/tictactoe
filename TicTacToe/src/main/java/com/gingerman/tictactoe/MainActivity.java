@@ -17,6 +17,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,12 +33,13 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
     private static final String LOG_TAG = "MainActivity";
     private static final String GAME_FRAGMENT_TAG = "GameFragment";
 
+    private ProgressBar mInitProgressBar = null;
     private ListView mResultsList = null;
     private Spinner mPlayer1Spinner = null;
     private Spinner mPlayer2Spinner = null;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -47,11 +49,15 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                     .commit();
         }
 
+        mInitProgressBar = (ProgressBar) findViewById(R.id.container_progress);
+
         // Initialize our game logic manager
         ApplicationManager.getsInstance().initialize(this, new ApplicationManager.InitializationListener() {
             @Override
             public void onComplete() {
                 Log.d(LOG_TAG, "ApplicationManager initialization is complete.");
+
+                mInitProgressBar.setVisibility(View.GONE);
 
                 mPlayer1Spinner = (Spinner) findViewById(R.id.player_1_spn);
                 mPlayer2Spinner = (Spinner) findViewById(R.id.player_2_spn);

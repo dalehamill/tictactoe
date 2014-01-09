@@ -61,10 +61,9 @@ public class Game implements Parcelable {
     /**
      * Implements a move (claiming a location in the game map)
      * @param position position that the player wants to claim
-     * @param listener allows callback if game is complete
      * @return the bitmap to claim the spot, if move was legal, or null if it was illegal
      */
-    public Bitmap claimGamePosition(int position, GameFragment.OnGameListener listener) {
+    public Bitmap claimGamePosition(int position) {
         if (position >= gameBoardState.length || position < 0 || checkCompleteness()) return null;
 
         if (gameBoardState[position] > 0) return null; // illegal move, already claimed
@@ -74,14 +73,20 @@ public class Game implements Parcelable {
         // is the game over, or shall we continue
         if (checkCompleteness()) {
             Log.d(LOG_TAG, "game complete, prompting listener");
-            if (listener != null) listener.onGameComplete(this);
         } else {
             current = current == player1 ? player2 : player1; // new players turn
         }
         return bmp;
     }
 
-    public boolean checkCompleteness() {
+    /**
+     * Does a check to see if the game is complete (a win has occurred, or game board is full)
+     * @param listener callback to report that the game is complete, if it is so
+     */
+    public void checkCompleteness(GameFragment.OnGameListener listener) {
+        if (checkCompleteness() && listener != null) listener.onGameComplete(this);
+    }
+    private boolean checkCompleteness() {
         // wins occur if three in a row, so check all cases
         if (positionStatus(0,1,2) ||
                 positionStatus(3,4,5) ||

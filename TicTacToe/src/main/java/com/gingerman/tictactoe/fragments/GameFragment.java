@@ -75,12 +75,14 @@ public class GameFragment extends Fragment {
                 btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Bitmap bmp = mGame.claimGamePosition(position, mListener);
+                        Bitmap bmp = mGame.claimGamePosition(position);
                         if (bmp == null) Toast.makeText(getActivity(), R.string.illegal_move, 2500).show();
                         else {
                             btn.setImageBitmap(bmp);
                             updateTitle();
                         }
+                        // check if the game is complete
+                        mGame.checkCompleteness(mListener);
                     }
                 });
             }

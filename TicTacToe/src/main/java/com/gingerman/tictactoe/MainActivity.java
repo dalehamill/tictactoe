@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.Service;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -30,6 +33,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
     private static final String GAME_FRAGMENT_TAG = "GameFragment";
 
     private ListView mResultsList = null;
+    private Spinner mPlayer1Spinner = null;
+    private Spinner mPlayer2Spinner = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,28 +53,34 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
             public void onComplete() {
                 Log.d(LOG_TAG, "ApplicationManager initialization is complete.");
 
-                List<Player> players = ApplicationManager.getsInstance().players;
-                List<String> names = new ArrayList<String>();
-                if (players != null) {
-                    for (Player player : players) {
-                        if (player != null) names.add(player.name);
+                mPlayer1Spinner = (Spinner) findViewById(R.id.player_1_spn);
+                mPlayer2Spinner = (Spinner) findViewById(R.id.player_2_spn);
+                refreshSpinnerListAdapters();
+
+                mPlayer1Spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        findViewById(R.id.new_player_1).setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                        if (id == mPlayer2Spinner.getSelectedItemId()) mPlayer1Spinner.setSelection(0, true);
                     }
-                }
 
-                // Simple array adapter for all player names
-                ArrayAdapter<String> playerListAdapter = new ArrayAdapter<String>(
-                        getApplicationContext(),
-                        android.R.layout.simple_list_item_1,
-                        names);
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        findViewById(R.id.new_player_1).setVisibility(View.VISIBLE);
+                    }
+                });
+                mPlayer2Spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        findViewById(R.id.new_player_2).setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                        if (id == mPlayer1Spinner.getSelectedItemId()) mPlayer2Spinner.setSelection(0, true);
+                    }
 
-                final Spinner spin1 = (Spinner) findViewById(R.id.player_1_spn);
-                spin1.setAdapter(playerListAdapter);
-                final Spinner spin2 = (Spinner) findViewById(R.id.player_2_spn);
-                spin2.setAdapter(playerListAdapter);
-                if (names.size() == 0) {
-                    spin1.setVisibility(View.GONE);
-                    spin2.setVisibility(View.GONE);
-                }
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        findViewById(R.id.new_player_2).setVisibility(View.VISIBLE);
+                    }
+                });
 
                 final EditText p1txt = (EditText) findViewById(R.id.player_1_new);
                 final EditText p2txt = (EditText) findViewById(R.id.player_2_new);
@@ -78,14 +89,13 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 playBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String player1Name = p1txt.getText().toString();
-                        if (player1Name.length() == 0 && spin1.getVisibility() == View.VISIBLE) {
-                            player1Name = spin1.getSelectedItem().toString();
-                        }
-                        String player2Name = p2txt.getText().toString();
-                        if (player2Name.length() == 0 && spin1.getVisibility() == View.VISIBLE) {
-                            player2Name = spin1.getSelectedItem().toString();
-                        }
+                        String player1Name = mPlayer1Spinner.getSelectedItemPosition() == 0 ? p1txt.getText().toString() :
+                                (mPlayer1Spinner.getSelectedItem() == null ? null : mPlayer1Spinner.getSelectedItem().toString());
+                        String player2Name = mPlayer2Spinner.getSelectedItemPosition() == 0 ? p2txt.getText().toString() :
+                                (mPlayer2Spinner.getSelectedItem() == null ? null : mPlayer2Spinner.getSelectedItem().toString());
+
+                        InputMethodManager imm = (InputMethodManager)getSystemService(Service.INPUT_METHOD_SERVICE);
+                        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 
                         // Create a new game
                         Game newGame = ApplicationManager.getsInstance().createNewGame(
@@ -103,6 +113,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 });
 
                 mResultsList = (ListView) findViewById(R.id.results_list);
+                List<Player> players = ApplicationManager.getsInstance().players;
                 mResultsList.setAdapter(new ResultsListAdapter(players));
             }
         });
@@ -125,6 +136,7 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
 
         // update results
         mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
+        refreshSpinnerListAdapters();
 
         getFragmentManager().popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
@@ -149,6 +161,31 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_create, container, false);
             return rootView;
+        }
+    }
+
+    private void refreshSpinnerListAdapters() {
+        List<Player> players = ApplicationManager.getsInstance().players;
+        final List<String> names = new ArrayList<String>();
+        names.add("<Custom>");
+        if (players != null) {
+            for (Player player : players) {
+                if (player != null) names.add(player.name);
+            }
+        }
+
+        // Simple array adapter for all player names
+        final ArrayAdapter<String> playerListAdapter = new ArrayAdapter<String>(
+                getApplicationContext(),
+                android.R.layout.simple_list_item_1,
+                names);
+
+        mPlayer1Spinner.setAdapter(playerListAdapter);
+        mPlayer2Spinner.setAdapter(playerListAdapter);
+
+        if (names.size() == 1) {
+            mPlayer1Spinner.setVisibility(View.INVISIBLE);
+            mPlayer2Spinner.setVisibility(View.INVISIBLE);
         }
     }
 

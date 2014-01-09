@@ -19,6 +19,7 @@
         android:id="@+id/spinner_layout_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
         android:orientation="horizontal">
         <TextView
             android:id="@+id/player_1_txt"
@@ -40,7 +41,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
         android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"
@@ -57,6 +57,7 @@
         android:id="@+id/spinner_layout_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
         android:orientation="horizontal">
         <TextView
             android:id="@+id/player_2_txt"
@@ -79,7 +80,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
         android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"

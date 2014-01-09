@@ -26,14 +26,6 @@ public class Game implements Parcelable {
     private static final int PLAYER_1_MARK = 1;
     private static final int PLAYER_2_MARK = 2;
 
-    public interface DB_FIELDS {
-        public static final String tableName = "game";
-        public static final String id = "id";
-        public static final String player1 = "player_1";
-        public static final String player2 = "player_2";
-        public static final String winner = "winner";
-    }
-
     /**
      * Construct a new game with empty game state
      * @param gamePlayer1 player 1 (x)
@@ -115,18 +107,6 @@ public class Game implements Parcelable {
         player1.draws++;
         player2.draws++;
         return true; // game board is full
-    }
-
-    /**
-     * @return ContentValues representing this object
-     */
-    public ContentValues getSerializedValues() {
-        ContentValues values = new ContentValues(3);
-        values.put(DB_FIELDS.player1, player1.id);
-        values.put(DB_FIELDS.player2, player2.id);
-        if (winner != null) values.put(DB_FIELDS.winner, winner.id);
-
-        return values;
     }
 
     /**

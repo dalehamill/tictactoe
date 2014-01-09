@@ -63,10 +63,6 @@ public class DatabaseManager {
         mDbHelper.close();
     }
 
-    private SQLiteDatabase getDb() {
-        return mDbHelper != null ? mDbHelper.getWritableDatabase() : null;
-    }
-
     private class DatabaseCreationTask extends AsyncTask<ApplicationManager.InitializationListener, Void, ApplicationManager.InitializationListener> {
         @Override
         protected ApplicationManager.InitializationListener doInBackground(ApplicationManager.InitializationListener... listener) {
@@ -100,21 +96,10 @@ public class DatabaseManager {
                 StringBuilder sql = new StringBuilder();
                 sql.append(String.format("CREATE TABLE %s (", Player.DB_FIELDS.tableName));
                 sql.append(" id INTEGER PRIMARY KEY, ");
-                sql.append(" name TEXT NOT NULL UNIQUE ");
-                sql.append(");");
-
-                execute(db, sql.toString());
-
-                // Create game table for Game class
-                sql = new StringBuilder();
-                sql.append("CREATE TABLE game (");
-                sql.append(" id INTEGER PRIMARY KEY, ");
-                sql.append(" player_1 INTEGER NOT NULL, ");
-                sql.append(" player_2 INTEGER NOT NULL, ");
-                sql.append(" winner INTEGER, ");
-                sql.append(String.format("  FOREIGN KEY (player_1) REFERENCES %s (id), ", Player.DB_FIELDS.tableName));
-                sql.append(String.format("  FOREIGN KEY (player_2) REFERENCES %s (id), ", Player.DB_FIELDS.tableName));
-                sql.append(String.format("  FOREIGN KEY (winner) REFERENCES %s (id) ", Player.DB_FIELDS.tableName));
+                sql.append(" name TEXT NOT NULL UNIQUE, ");
+                sql.append(" wins INTEGER DEFAULT 0, ");
+                sql.append(" losses INTEGER DEFAULT 0, ");
+                sql.append(" draws INTEGER DEFAULT 0 ");
                 sql.append(");");
 
                 execute(db, sql.toString());
@@ -152,39 +137,30 @@ public class DatabaseManager {
     }
 
     public List<Player> fetchAllPlayers() {
-        SQLiteDatabase db = getDb();
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-//        StringBuilder sql = new StringBuilder();
-//        sql.append("SELECT p.*, COUNT(w.) AS wins, COUNT(l) AS losses, COUNT(d) AS draws ");
-//        sql.append(" FROM   player p, ");
-//        sql.append("        game w, ");
-//        sql.append("        game l, ");
-//        sql.append("        game d ");
-//        sql.append(" WHERE ");
-//        sql.append("        p.id = w.winner AND ");
-//        sql.append("        ((p.id = l.player_1 OR p.id = l.player_2) AND p.id != l.winner AND l.winner IS NOT NULL) AND ");
-//        sql.append("        ((p.id = d.player_1 OR p.id = d.player_2) AND d.winner IS NULL); ");
+        try {
+            StringBuilder sql = new StringBuilder();
+            sql.append("SELECT * ");
+            sql.append(String.format(" FROM   %s; ", Player.DB_FIELDS.tableName));
 
-        // TODO proper sql statement to fetch records...
+            Cursor cursor = execute(db, sql.toString(), null);
+            if (cursor == null || !cursor.moveToFirst()) return null;
 
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT * ");
-        sql.append(String.format(" FROM   %s; ", Player.DB_FIELDS.tableName));
+            List<Player> players = new ArrayList<Player>();
+            while (!cursor.isAfterLast()) {
+                players.add(new Player(cursor));
+                cursor.moveToNext();
+            }
 
-        Cursor cursor = execute(db, sql.toString(), null);
-        if (cursor == null || !cursor.moveToFirst()) return null;
-
-        List<Player> players = new ArrayList<Player>();
-        while (!cursor.isAfterLast()) {
-            players.add(new Player(cursor));
-            cursor.moveToNext();
+            return players;
+        } finally {
+            db.close();
         }
-
-        return players;
     }
 
     public Player createPlayer(String name) {
-        SQLiteDatabase db = getDb();
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         Player player = null;
         try {
             db.beginTransaction();
@@ -199,37 +175,35 @@ public class DatabaseManager {
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
+            db.close();
         }
         return player;
     }
 
-    public int serializeGameResult(Game game) {
-        if (game == null) return -1; // bad state
+    /**
+     * Serialize the game result (ie, update player table) based on details of the Game provided
+     * @param game Game containing results to serialize
+     */
+    public void serializeGameResult(Game game) {
+        if (game == null) return; // bad state
 
-        SQLiteDatabase db = getDb();
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         try {
-            int result = -1;
-
             db.beginTransaction();
 
-            result = (int) db.insert(Game.DB_FIELDS.tableName, null, game.getSerializedValues());
-
             Player player1 = game.player1;
-            String[] whereArgs1 = {Player.DB_FIELDS.id, Long.toString(player1.id)};
-            db.updateWithOnConflict(Player.DB_FIELDS.tableName, player1.getSerializedValues(),
-                    "? = ?", whereArgs1, SQLiteDatabase.CONFLICT_REPLACE);
+            int p1row = db.update(Player.DB_FIELDS.tableName, player1.getSerializedValues(),
+                    String.format("id = %s",player1.id), null);
 
             Player player2 = game.player2;
-            String[] whereArgs2 = {Player.DB_FIELDS.id, Long.toString(player2.id)};
-            db.updateWithOnConflict(Player.DB_FIELDS.tableName, player2.getSerializedValues(),
-                    "? = ?", whereArgs2, SQLiteDatabase.CONFLICT_REPLACE);
+            int p2row = db.update(Player.DB_FIELDS.tableName, player2.getSerializedValues(),
+                    String.format("id = %s", player2.id), null);
 
             db.setTransactionSuccessful();
-
-            return result;
         } finally {
             db.endTransaction();
+            db.close();
         }
     }
 

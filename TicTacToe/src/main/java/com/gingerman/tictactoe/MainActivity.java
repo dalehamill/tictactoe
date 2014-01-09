@@ -116,6 +116,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
                 mResultsList = (ListView) findViewById(R.id.results_list);
                 List<Player> players = ApplicationManager.getsInstance().players;
                 mResultsList.setAdapter(new ResultsListAdapter(players));
+                // avoid keyboard popping up by putting focus on the list
+                mResultsList.requestFocus();
             }
         });
     }
@@ -138,6 +140,8 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         // update results
         mResultsList.setAdapter(new ResultsListAdapter(ApplicationManager.getsInstance().players));
         refreshSpinnerListAdapters();
+        // avoid keyboard popping up by putting focus on the list
+        mResultsList.requestFocus();
 
         getFragmentManager().popBackStack(GAME_FRAGMENT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
@@ -185,8 +189,11 @@ public class MainActivity extends Activity implements GameFragment.OnGameListene
         mPlayer2Spinner.setAdapter(playerListAdapter);
 
         if (names.size() == 1) {
-            mPlayer1Spinner.setVisibility(View.INVISIBLE);
-            mPlayer2Spinner.setVisibility(View.INVISIBLE);
+            mPlayer1Spinner.setVisibility(View.GONE);
+            mPlayer2Spinner.setVisibility(View.GONE);
+        } else {
+            mPlayer1Spinner.setVisibility(View.VISIBLE);
+            mPlayer2Spinner.setVisibility(View.VISIBLE);
         }
     }
 

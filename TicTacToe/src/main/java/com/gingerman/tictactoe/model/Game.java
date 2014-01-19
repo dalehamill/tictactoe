@@ -81,11 +81,12 @@ public class Game implements Parcelable {
     }
 
     /**
-     * Does a check to see if the game is complete (a win has occurred, or game board is full)
-     * @param listener callback to report that the game is complete, if it is so
+     * Does a check to see if the game is complete (a win has occurred, or game board is full), and performs
+     *   a callback if so
+     * @param listener callback to report that the game is complete, if it is so.
      */
     public void checkCompleteness(GameFragment.OnGameListener listener) {
-        if (!checkCompleteness() || listener == null) return;
+        if (listener == null || !checkCompleteness()) return; // nothing more to do
 
         // update our copy of the player
         if (winner == player1) {
@@ -101,7 +102,7 @@ public class Game implements Parcelable {
 
         listener.onGameComplete(this);
     }
-    private boolean checkCompleteness() {
+    public boolean checkCompleteness() {
         // wins occur if three in a row, so check all cases
         if (positionStatus(0,1,2) ||
                 positionStatus(3,4,5) ||

@@ -1,5 +1,6 @@
 package com.gingerman.tictactoe.fragments;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.graphics.Bitmap;
@@ -93,14 +94,6 @@ public class GameFragment extends Fragment {
                     }
                 });
             }
-
-            Button quitBtn = (Button) view.findViewById(R.id.quit_game_btn);
-            quitBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mListener != null) mListener.onGameQuit(mGame);
-                }
-            });
         }
 
         return view;
@@ -149,5 +142,12 @@ public class GameFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement OnGameListener");
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (mGame != null && mListener != null && !mGame.checkCompleteness()) mListener.onGameQuit(mGame);
     }
 }
